@@ -48,10 +48,10 @@ Clone the repository or download it.
 
 Use the Makefile to build the binary
 ```bash
-> make          # build the lib
+> make          # build the binary
 > make re       # rebuild if it exists
 > make clean    # clean the tmp file
-> make fclean   # clean all, also the lib
+> make fclean   # clean all, also the binary
 ```
 
 Then you can use it !
