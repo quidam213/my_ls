@@ -14,8 +14,10 @@ static bool get_path([[maybe_unused]]char *path, const char *asked_path)
     }
     if (asked_path[0] != '/') {
         strcat(path, "/");
+        strcat(path, asked_path);
+        return true;
     }
-    strcat(path, asked_path);
+    strcpy(path, asked_path);
     return true;
 }
 
@@ -67,6 +69,46 @@ static bool flag_asked(char c, list_t *flags)
     return is_in_list(flags, (void *)&c, &char_equality);
 }
 
+static bool files_sorted(list_t *files)
+{
+    list_t *tmp = files;
+
+    while (tmp) {
+        if (!tmp->next) {
+            break;
+        }
+        struct dirent *d1 = (struct dirent *)(tmp->data);
+        struct dirent *d2 = (struct dirent *)(tmp->next->data);
+        if (strcmp(d1->d_name, d2->d_name) > 0) {
+            return false;
+        }
+        tmp = tmp->next;
+    }
+    return true;
+}
+
+static void sort_files(list_t **files)
+{
+    list_t *tmp = NULL;
+
+    while (!files_sorted(*files)) {
+        tmp = *files;
+        while (tmp) {
+            if (!tmp->next) {
+                break;
+            }
+            struct dirent *d1 = (struct dirent *)(tmp->data);
+            struct dirent *d2 = (struct dirent *)(tmp->next->data);
+            if (strcmp(d1->d_name, d2->d_name) > 0) {
+                void *data_tmp = tmp->data;
+                tmp->data = tmp->next->data;
+                tmp->next->data = data_tmp;
+            }
+            tmp = tmp->next;
+        }
+    }
+}
+
 void ls(const char *asked_path, [[maybe_unused]]list_t *flags)
 {
     char path[PATH_MAX];
@@ -79,5 +121,6 @@ void ls(const char *asked_path, [[maybe_unused]]list_t *flags)
     if (!flag_asked('a', flags)) {
         delete_hidden_files(&files);
     }
+    sort_files(&files);
     basic_ls(files);
 }
