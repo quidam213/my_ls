@@ -11,7 +11,7 @@ static void parse_flag(const char *str, list_t **head)
 {
     for (size_t i = 0; str[i]; i ++) {
         if (!is_in_list(*head, (void *)(&str[i]), &char_equality)) {
-            add_element(head, (void *)(&str[i]));
+            add_element(head, (void *)(&str[i]), &base_free_node);
         }
     }
 }
@@ -52,7 +52,7 @@ core_t *init_core(char **av)
         if (av[i][0] == '-') {
             parse_flag(&av[i][1], &core->flags);
         } else {
-            add_element(&core->path, (void *)(av[i]));
+            add_element(&core->path, (void *)(av[i]), &base_free_node);
         }
     }
     if (!flags_exist(core->flags)) {
@@ -61,7 +61,7 @@ core_t *init_core(char **av)
         return NULL;
     }
     if (!core->path) {
-        add_element(&core->path, (void *)("."));
+        add_element(&core->path, (void *)("."), &base_free_node);
     }
     return core;
 }

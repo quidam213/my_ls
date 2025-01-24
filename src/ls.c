@@ -21,6 +21,35 @@ static bool get_path([[maybe_unused]]char *path, const char *asked_path)
     return true;
 }
 
+static void get_filepath(char *filepath, char *path, char *filename)
+{
+    strcpy(filepath, path);
+    if (path[strlen(path) - 1] != '/') {
+        strcat(filepath, "/");
+    }
+    strcat(filepath, filename);
+}
+
+static void free_file(list_t *node)
+{
+    file_t *f = (file_t *)node->data;
+
+    free(f);
+}
+
+static void add_file(list_t **files, char *path, struct dirent d)
+{
+    file_t *f = malloc(sizeof(file_t));
+
+    get_filepath(f->path, path, d.d_name);
+    if (stat(f->path, &f->st) < 0) {
+        free(f);
+        return;
+    }
+    f->d = d;
+    add_element(files, (void *)f, &free_file);
+}
+
 static list_t *get_files(char *path)
 {
     DIR *dir = opendir(path);
@@ -31,8 +60,9 @@ static list_t *get_files(char *path)
         return NULL;
     }
     while ((d = readdir(dir))) {
-        add_element(&files, (void *)(d));
+        add_file(&files, path, *d);
     }
+    closedir(dir);
     return files;
 }
 
@@ -41,8 +71,8 @@ static void basic_ls(list_t *files)
     list_t *tmp = files;
 
     while (tmp) {
-        struct dirent *d = (struct dirent *)(tmp->data);
-        printf("%s%c", d->d_name, tmp->next ? ' ' : '\n');
+        file_t *f = (file_t *)(tmp->data);
+        printf("%s%c", f->d.d_name, tmp->next ? ' ' : '\n');
         tmp = tmp->next;
     }
 }
@@ -53,8 +83,8 @@ static void delete_hidden_files(list_t **files)
     size_t i = 0;
 
     while (tmp) {
-        struct dirent *d = (struct dirent *)(tmp->data);
-        if (d->d_name[0] == '.') {
+        file_t *f = (file_t *)tmp->data;
+        if (f->d.d_name[0] == '.') {
             tmp = tmp->next;
             delete_element_by_index(files, i);
             continue;
@@ -69,43 +99,74 @@ static bool flag_asked(char c, list_t *flags)
     return is_in_list(flags, (void *)&c, &char_equality);
 }
 
-static bool files_sorted(list_t *files)
+static bool alpha_sort_checker(list_t *node)
 {
-    list_t *tmp = files;
+    file_t *f1 = (file_t *)(node->data);
+    file_t *f2 = (file_t *)(node->next->data);
 
-    while (tmp) {
-        if (!tmp->next) {
-            break;
-        }
-        struct dirent *d1 = (struct dirent *)(tmp->data);
-        struct dirent *d2 = (struct dirent *)(tmp->next->data);
-        if (strcmp(d1->d_name, d2->d_name) > 0) {
-            return false;
-        }
-        tmp = tmp->next;
+    if (strcmp(f1->d.d_name, f2->d.d_name) > 0) {
+        return false;
     }
     return true;
 }
 
-static void sort_files(list_t **files)
+static void alpha_sort_operation(list_t **node)
 {
-    list_t *tmp = NULL;
+    file_t *f1 = (file_t *)((*node)->data);
+    file_t *f2 = (file_t *)((*node)->next->data);
 
-    while (!files_sorted(*files)) {
-        tmp = *files;
-        while (tmp) {
-            if (!tmp->next) {
-                break;
-            }
-            struct dirent *d1 = (struct dirent *)(tmp->data);
-            struct dirent *d2 = (struct dirent *)(tmp->next->data);
-            if (strcmp(d1->d_name, d2->d_name) > 0) {
-                void *data_tmp = tmp->data;
-                tmp->data = tmp->next->data;
-                tmp->next->data = data_tmp;
-            }
-            tmp = tmp->next;
-        }
+    if (strcmp(f1->d.d_name, f2->d.d_name) > 0) {
+        void *data_tmp = (*node)->data;
+        (*node)->data = (*node)->next->data;
+        (*node)->next->data = data_tmp;
+    }
+}
+
+static bool time_sort_checker(list_t *node)
+{
+    file_t *f1 = (file_t *)(node->data);
+    file_t *f2 = (file_t *)(node->next->data);
+
+    if (f1->st.st_atime < f2->st.st_atime) {
+        return false;
+    }
+    return true;
+}
+
+static void time_sort_operation(list_t **node)
+{
+    file_t *f1 = (file_t *)((*node)->data);
+    file_t *f2 = (file_t *)((*node)->next->data);
+
+    if (f1->st.st_atime < f2->st.st_atime) {
+        void *data_tmp = (*node)->data;
+        (*node)->data = (*node)->next->data;
+        (*node)->next->data = data_tmp;
+    }
+}
+
+static void list_file(file_t *file)
+{
+    printf((S_ISDIR(file->st.st_mode)) ? "d" : "-");
+    printf((file->st.st_mode & S_IRUSR) ? "r" : "-");
+    printf((file->st.st_mode & S_IWUSR) ? "w" : "-");
+    printf((file->st.st_mode & S_IXUSR) ? "x" : "-");
+    printf((file->st.st_mode & S_IRGRP) ? "r" : "-");
+    printf((file->st.st_mode & S_IWGRP) ? "w" : "-");
+    printf((file->st.st_mode & S_IXGRP) ? "x" : "-");
+    printf((file->st.st_mode & S_IROTH) ? "r" : "-");
+    printf((file->st.st_mode & S_IWOTH) ? "w" : "-");
+    printf((file->st.st_mode & S_IXOTH) ? "x" : "-");
+}
+
+static void list_ls(list_t *files)
+{
+    list_t *tmp = files;
+
+    while (tmp) {
+        list_file((file_t *)tmp->data);
+        printf("\n");
+        tmp = tmp->next;
     }
 }
 
@@ -121,9 +182,18 @@ void ls(const char *asked_path, [[maybe_unused]]list_t *flags)
     if (!flag_asked('a', flags)) {
         delete_hidden_files(&files);
     }
-    sort_files(&files);
+    if (flag_asked('t', flags)) {
+        sort_list(&files, &time_sort_checker, &time_sort_operation);
+    } else {
+        sort_list(&files, &alpha_sort_checker, &alpha_sort_operation);
+    }
     if (flag_asked('r', flags)) {
         reverse_list(&files);
     }
-    basic_ls(files);
+    if (flag_asked('l', flags)) {
+        list_ls(files);
+    } else {
+        basic_ls(files);
+    }
+    free_list(&files);
 }

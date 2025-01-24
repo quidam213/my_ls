@@ -7,12 +7,13 @@
 
 #include "ls.h"
 
-void add_element(list_t **head, void *data)
+void add_element(list_t **head, void *data, void (* node_freer) (struct list_s *))
 {
     list_t *new = malloc(sizeof(list_t));
 
     new->data = data;
     new->next = *head ? *head : NULL;
+    new->freer = node_freer;
     *head = new;
 }
 
@@ -25,13 +26,15 @@ bool delete_element_by_index(list_t **head, size_t i)
         return false;
     }
     if (i == 0) {
-        *head = (*head)->next;
+        *head = (*head)->next ? (*head)->next : NULL;
+        tmp->freer(tmp);
         free(tmp);
         return true;
     }
     while (tmp) {
         if (j == i) {
             prev->next = tmp->next ? tmp->next : NULL;
+            tmp->freer(tmp);
             free(tmp);
             return true;
         }
@@ -119,4 +122,44 @@ void reverse_list(list_t **head)
         tmp = next;
     }
     *head = prev;
+}
+
+static bool list_sort_check(list_t *head, bool (* sort_checker) (list_t *))
+{
+    list_t *tmp = head;
+
+    while (tmp) {
+        if (!tmp->next) {
+            break;
+        }
+        if (!sort_checker(tmp)) {
+            return false;
+        }
+        tmp = tmp->next;
+    }
+    return true;
+}
+
+void sort_list(list_t **head, bool (* sort_checker) (list_t *), void (* operation) (list_t **))
+{
+    list_t *tmp = NULL;
+
+    while (!list_sort_check(*head, sort_checker)) {
+        tmp = *head;
+        while (tmp) {
+            if (!tmp->next) {
+                break;
+            }
+            operation(&tmp);
+            tmp = tmp->next;
+        }
+    }
+}
+
+void base_free_node(list_t *node)
+{
+    //? does literally nothing
+    //? (use it only if the data provided in list isn't freeable)
+
+    return;
 }
