@@ -79,7 +79,7 @@ void free_core(core_t **core)
 void execute_core(core_t **core)
 {
     list_t *tmp = (*core)->path;
-    bool name_cond = (get_list_len(tmp) || flag_asked('R', (*core)->flags));
+    bool name_cond = (get_list_len(tmp) > 1 || flag_asked('R', (*core)->flags));
 
     while (tmp) {
         if (name_cond) {
