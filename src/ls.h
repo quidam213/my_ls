@@ -15,9 +15,10 @@
 #include <unistd.h>
 #include <linux/limits.h>
 #include <string.h>
+#include <dirent.h>
 
 //? DEFINES
-#define FLAGS_LIST "laArRt"
+#define FLAGS_LIST "larRt"
 #define FLAG_DOESNT_EXIST "Unknown flag entered.\n"
 
 //? STRUCTURES
@@ -49,5 +50,9 @@ bool is_in_list(list_t *head, void *data, bool (* equality) (void *, void *));
 //* core.c
 core_t *init_core(char **av);
 void free_core(core_t **core);
+void execute_core(core_t **core);
+
+//* ls.c
+void ls(const char *asked_path, list_t *flags);
 
 #endif /* !LS_H_ */

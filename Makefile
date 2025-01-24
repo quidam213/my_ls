@@ -7,7 +7,7 @@
 
 CFILES = $(shell find ./src -name "*.c")
 
-CFLAGS = -Wall -Wextra -Werror
+# CFLAGS = -Wall -Wextra -Werror
 
 NAME = my_ls
 

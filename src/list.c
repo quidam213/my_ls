@@ -29,9 +29,9 @@ bool delete_element_by_index(list_t **head, size_t i)
         free(tmp);
         return true;
     }
-    while (tmp && j < i) {
+    while (tmp) {
         if (j == i) {
-            prev->next = tmp->next;
+            prev->next = tmp->next ? tmp->next : NULL;
             free(tmp);
             return true;
         }
@@ -86,8 +86,8 @@ void display_list(list_t *head, void (*displayer) (void *))
 
 bool char_equality(void *a_ptr, void *b_ptr)
 {
-    char a = *(char *)(a_ptr);
-    char b = *(char *)(b_ptr);
+    char a = (*(char *)a_ptr);
+    char b = (*(char *)b_ptr);
 
     return a == b;
 }

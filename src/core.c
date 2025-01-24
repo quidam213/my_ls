@@ -60,6 +60,9 @@ core_t *init_core(char **av)
         write(2, FLAG_DOESNT_EXIST, strlen(FLAG_DOESNT_EXIST));
         return NULL;
     }
+    if (!core->path) {
+        add_element(&core->path, (void *)("."));
+    }
     return core;
 }
 
@@ -69,5 +72,15 @@ void free_core(core_t **core)
     free_list(&(*core)->path);
     if (*core) {
         free(*core);
+    }
+}
+
+void execute_core(core_t **core)
+{
+    list_t *tmp = (*core)->path;
+
+    while (tmp) {
+        ls((char *)(tmp->data), (*core)->flags);
+        tmp = tmp->next;
     }
 }
