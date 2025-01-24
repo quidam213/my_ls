@@ -14,23 +14,20 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <linux/limits.h>
+#include <string.h>
 
 //? DEFINES
-
+#define FLAGS_LIST "laArRt"
+#define FLAG_DOESNT_EXIST "Unknown flag entered.\n"
 
 //? STRUCTURES
-typedef struct flag_s {
-    char value;
-    int (*function) ();
-} flag_t;
-
 typedef struct list_s {
     void *data;
     struct list_s *next;
 } list_t;
 
 typedef struct core_s {
-    char *path;
+    struct list_s *path;
     struct list_s *flags;
 } core_t;
 
@@ -44,6 +41,7 @@ bool delete_element_by_index(list_t **head, size_t i);
 size_t get_list_len(list_t *head);
 void free_list(list_t **head);
 void char_displayer(void *data);
+void str_displayer(void *data);
 void display_list(list_t *head, void (*displayer) (void *));
 bool char_equality(void *a_ptr, void *b_ptr);
 bool is_in_list(list_t *head, void *data, bool (* equality) (void *, void *));

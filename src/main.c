@@ -14,6 +14,8 @@ int main([[maybe_unused]] int ac, char **av)
     if (!core) {
         return 84;
     }
+    display_list(core->path, &str_displayer);
     display_list(core->flags, &char_displayer);
+    free_core(&core);
     return 0;
 }

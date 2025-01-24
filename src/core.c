@@ -16,6 +16,32 @@ static void parse_flag(const char *str, list_t **head)
     }
 }
 
+static bool char_in_str(char c, char *str)
+{
+    if (!str) {
+        return false;
+    }
+    for (size_t i = 0; str[i]; i ++) {
+        if (str[i] == c) {
+            return true;
+        }
+    }
+    return false;
+}
+
+static bool flags_exist(list_t *flags)
+{
+    list_t *tmp = flags;
+
+    while (tmp) {
+        if (!char_in_str(*(char *)(tmp->data), FLAGS_LIST)) {
+            return false;
+        }
+        tmp = tmp->next;
+    }
+    return true;
+}
+
 core_t *init_core(char **av)
 {
     core_t *core = malloc(sizeof(core_t));
@@ -26,8 +52,13 @@ core_t *init_core(char **av)
         if (av[i][0] == '-') {
             parse_flag(&av[i][1], &core->flags);
         } else {
-            //! path
+            add_element(&core->path, (void *)(av[i]));
         }
+    }
+    if (!flags_exist(core->flags)) {
+        free_core(&core);
+        write(2, FLAG_DOESNT_EXIST, strlen(FLAG_DOESNT_EXIST));
+        return NULL;
     }
     return core;
 }
@@ -35,6 +66,7 @@ core_t *init_core(char **av)
 void free_core(core_t **core)
 {
     free_list(&(*core)->flags);
+    free_list(&(*core)->path);
     if (*core) {
         free(*core);
     }

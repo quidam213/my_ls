@@ -67,6 +67,12 @@ void char_displayer(void *data)
     write(1, &c, 1);
 }
 
+void str_displayer(void *data)
+{
+    char *str = (char *)(data);
+    write(1, str, strlen(str));
+}
+
 void display_list(list_t *head, void (*displayer) (void *))
 {
     list_t *tmp = head;
