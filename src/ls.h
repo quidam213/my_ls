@@ -69,6 +69,7 @@ void free_core(core_t **core);
 void execute_core(core_t **core);
 
 //* ls.c
+bool flag_asked(char c, list_t *flags);
 void ls(const char *asked_path, list_t *flags);
 
 #endif /* !LS_H_ */

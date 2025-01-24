@@ -63,6 +63,7 @@ core_t *init_core(char **av)
     if (!core->path) {
         add_element(&core->path, (void *)("."), &base_free_node);
     }
+    reverse_list(&core->path);
     return core;
 }
 
@@ -78,9 +79,16 @@ void free_core(core_t **core)
 void execute_core(core_t **core)
 {
     list_t *tmp = (*core)->path;
+    bool name_cond = (get_list_len(tmp) || flag_asked('R', (*core)->flags));
 
     while (tmp) {
+        if (name_cond) {
+            printf("%s:\n", (char *)tmp->data);
+        }
         ls((char *)(tmp->data), (*core)->flags);
+        if (name_cond && tmp->next) {
+            printf("\n");
+        }
         tmp = tmp->next;
     }
 }

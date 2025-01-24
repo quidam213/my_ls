@@ -94,7 +94,7 @@ static void delete_hidden_files(list_t **files)
     }
 }
 
-static bool flag_asked(char c, list_t *flags)
+bool flag_asked(char c, list_t *flags)
 {
     return is_in_list(flags, (void *)&c, &char_equality);
 }
