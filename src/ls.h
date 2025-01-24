@@ -18,10 +18,14 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <pwd.h>
+#include <grp.h>
+#include <time.h>
 
 //? DEFINES
 #define FLAGS_LIST "larRt"
 #define FLAG_DOESNT_EXIST "Unknown flag entered.\n"
+#define TIME_SIZE 13
+#define PERMS_SIZE 11
 
 //? STRUCTURES
 typedef struct list_s {

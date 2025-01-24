@@ -147,16 +147,34 @@ static void time_sort_operation(list_t **node)
 
 static void list_file(file_t *file)
 {
-    printf((S_ISDIR(file->st.st_mode)) ? "d" : "-");
-    printf((file->st.st_mode & S_IRUSR) ? "r" : "-");
-    printf((file->st.st_mode & S_IWUSR) ? "w" : "-");
-    printf((file->st.st_mode & S_IXUSR) ? "x" : "-");
-    printf((file->st.st_mode & S_IRGRP) ? "r" : "-");
-    printf((file->st.st_mode & S_IWGRP) ? "w" : "-");
-    printf((file->st.st_mode & S_IXGRP) ? "x" : "-");
-    printf((file->st.st_mode & S_IROTH) ? "r" : "-");
-    printf((file->st.st_mode & S_IWOTH) ? "w" : "-");
-    printf((file->st.st_mode & S_IXOTH) ? "x" : "-");
+    char perms[PERMS_SIZE] = {
+        (S_ISDIR(file->st.st_mode)) ? 'd' : '-',
+        (file->st.st_mode & S_IRUSR) ? 'r' : '-',
+        (file->st.st_mode & S_IWUSR) ? 'w' : '-',
+        (file->st.st_mode & S_IXUSR) ? 'x' : '-',
+        (file->st.st_mode & S_IRGRP) ? 'r' : '-',
+        (file->st.st_mode & S_IWGRP) ? 'w' : '-',
+        (file->st.st_mode & S_IXGRP) ? 'x' : '-',
+        (file->st.st_mode & S_IROTH) ? 'r' : '-',
+        (file->st.st_mode & S_IWOTH) ? 'w' : '-',
+        (file->st.st_mode & S_IXOTH) ? 'x' : '-',
+        '\0'
+    };
+    struct passwd *user = getpwuid(file->st.st_uid);
+    struct group *group = getgrgid(file->st.st_gid);
+    char time_str[TIME_SIZE] = {0};
+    struct tm *info = localtime(&file->st.st_mtime);
+
+    strftime(time_str, TIME_SIZE, "%b %d %H:%M", info);
+    printf("%s %d %s %s %7d %s %s\n",
+        perms,
+        file->st.st_nlink,
+        user->pw_name,
+        group->gr_name,
+        file->st.st_size,
+        time_str,
+        file->d.d_name
+    );
 }
 
 static void list_ls(list_t *files)
@@ -165,7 +183,6 @@ static void list_ls(list_t *files)
 
     while (tmp) {
         list_file((file_t *)tmp->data);
-        printf("\n");
         tmp = tmp->next;
     }
 }
