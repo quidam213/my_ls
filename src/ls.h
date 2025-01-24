@@ -46,6 +46,7 @@ void str_displayer(void *data);
 void display_list(list_t *head, void (*displayer) (void *));
 bool char_equality(void *a_ptr, void *b_ptr);
 bool is_in_list(list_t *head, void *data, bool (* equality) (void *, void *));
+void reverse_list(list_t **head);
 
 //* core.c
 core_t *init_core(char **av);

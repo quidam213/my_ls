@@ -104,3 +104,19 @@ bool is_in_list(list_t *head, void *data, bool (* equality) (void *, void *))
     }
     return false;
 }
+
+void reverse_list(list_t **head)
+{
+    list_t *prev = NULL, *tmp = *head, *next = NULL;
+
+    if (!(*head)) {
+        return;
+    }
+    while (tmp) {
+        next = tmp->next;
+        tmp->next = prev;
+        prev = tmp;
+        tmp = next;
+    }
+    *head = prev;
+}

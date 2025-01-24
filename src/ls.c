@@ -122,5 +122,8 @@ void ls(const char *asked_path, [[maybe_unused]]list_t *flags)
         delete_hidden_files(&files);
     }
     sort_files(&files);
+    if (flag_asked('r', flags)) {
+        reverse_list(&files);
+    }
     basic_ls(files);
 }
